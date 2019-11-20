@@ -1,19 +1,22 @@
 import React, {useRef, useEffect, useState} from 'react'
 import useWindowSize from '../hooks/useWindowSize'
-import {Player, FFT} from 'tone'
+import {Player, FFT, Time} from 'tone'
 import Button from './Button'
 
 const Animate = () => {
     const [count,setCount] = useState([])
-    const [playing, setPlaying] = useState(false)
+    const [loaded, setLoaded] = useState(false)
     const cnvRef = useRef()
+    const time = useRef(
+        new Time()
+    )
  const fft = useRef(
      new FFT(32)
  )
 const [width, height] = useWindowSize()  
 const track = useRef('https://res.cloudinary.com/makingthings/video/upload/v1568881368/mp3/go_for_landing.mp3')  
 const player = useRef(
-    new Player(track.current,()=>{ setPlaying(true) }).connect(fft.current).toMaster()
+    new Player(track.current,()=>{ setLoaded(true) }).fan(fft.current,time.current).toMaster()
 )
 // useEffect(()=>{
 //     const context = cnvRef.current.getContext('2d')
@@ -34,15 +37,19 @@ const player = useRef(
 const rAF = useRef()
 useEffect(()=>{
     const context = cnvRef.current.getContext('2d')
-    const loop = (time) => {    
+    const loop = () => {    
         rAF.current = requestAnimationFrame(loop)
         const value = fft.current.getValue()
         
         if(player.current.state === 'started'){   
-                        
+            console.log(time.current.valueOf())           
+         
             context.clearRect(0, 0, width, height)
             // const lineWidth = 4
             // context.fillStyle = 'white'
+            context.font='48px sans-serif';
+            context.fillText(Math.floor(time.current.valueOf()), 10, height / 2)
+            
 		    value.forEach((v, i) => {
             
                 const scale = (inputY, yRange, xRange) => {
@@ -70,21 +77,24 @@ console.log(player.current.state)
 return()=> cancelAnimationFrame(rAF.current)    
 })    
 
-    const clickHandler = () => {
+    const playkHandler = () => {
         player.current.start()
+
         if(fft.current.getValue().length){
             setCount(fft.current.getValue())
+            console.log(time.current.valueOf())
         }
     }
 
-    const stopClickHandler = () => {
+    const stopHandler = () => {
         player.current.stop()
     }
 
     return(
         <>
         
-        {playing ? <Button clickHandler={clickHandler} playing={!playing}>Play</Button> :<p>Loading</p>}
+        <Button clickHandler={playkHandler} disabled={!loaded}>Play</Button>
+        <Button clickHandler={stopHandler} disabled={!loaded}>Stop</Button>
         <canvas ref={cnvRef} width={width} height={height} />
         </>
     )

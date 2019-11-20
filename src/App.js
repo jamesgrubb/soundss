@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-
+import Animate from './components/animate'
 function App() {
   return (
     <div className="App">
@@ -19,6 +19,7 @@ function App() {
           Learn React
         </a>
       </header>
+      <Animate />
     </div>
   );
 }
